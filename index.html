@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>বেতন ও পেনশন ক্যালকুলেটর ২০২৬</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--bg:#f3f5ef;--sf:#fdfdfa;--ink:#26302e;--mu:#68746f;--ln:#dfe4dc;--tint:#e9efe8;--grid:#9fb3a6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101715;--sf:#172120;--ink:#e3ebe7;--mu:#90a19b;--ln:#263431;--tint:#1d2b28;--grid:#4a625b}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.1;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:36px 36px;-webkit-mask-image:linear-gradient(#000 40%,transparent);mask-image:linear-gradient(#000 40%,transparent)}
+body{font-family:"Noto Sans Bengali","Hind Siliguri",system-ui,sans-serif;line-height:1.7;background:var(--bg);color:var(--ink)}
+.card{box-shadow:0 1px 2px rgba(38,48,46,.04);background:var(--sf);border:1px solid var(--ln);border-radius:1.25rem}
+.mu{color:var(--mu)}.ln{border-color:var(--ln)}
+.inp{width:100%;min-height:48px;border:1.5px solid var(--ln);background:var(--sf);color:var(--ink);border-radius:.85rem;padding:.6rem .9rem;font:inherit}
+.inp:focus{outline:none;border-color:#2f6f66;box-shadow:0 0 0 3px rgba(47,111,102,.22)}
+.seg{display:flex;gap:4px;padding:4px;background:var(--tint);border-radius:.9rem}
+.seg button{flex:1;min-height:44px;border-radius:.7rem;font-weight:600;font-size:.88rem;color:var(--mu);transition:.15s}
+.seg button[aria-pressed=true]{background:linear-gradient(135deg,#2f6f66,#3f8a7e);color:#fff;box-shadow:0 4px 12px rgba(47,111,102,.3)}
+.sw{position:relative;width:46px;height:26px;flex:none}
+.sw i{position:absolute;inset:0;background:var(--ln);border-radius:99px;transition:.2s}
+.sw i:after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.peer:checked~i{background:linear-gradient(135deg,#2f6f66,#3f8a7e)}
+.peer:checked~i:after{transform:translateX(20px)}
+.tl{border-left:2px solid var(--ln)}
+.tl:before{content:"";position:absolute;left:-7px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--sf);border:2px solid #2f6f66}
+button,select,input{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid #2f6f66;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:1.5rem 1rem calc(.7rem + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--bg) 45%)}
+@media print{.np{display:none!important}body{background:#fff}}
+</style>
+</head>
+<body class="min-h-screen">
+<div class="mx-auto w-full max-w-[1440px] px-4 sm:px-8 xl:px-12 pb-32 lg:pb-16">
+
+<header class="np pt-8 pb-6 flex flex-col gap-2">
+  <div class="flex items-center justify-between gap-3">
+    <p id="eyebrow" class="text-sm font-semibold text-teal-700"></p>
+    <button id="lang" class="rounded-full border ln card px-4 min-h-[40px] text-sm font-semibold hover:brightness-95"></button>
+  </div>
+  <h1 id="title" class="mt-1 text-3xl lg:text-5xl font-bold leading-tight tracking-tight"></h1>
+  <p id="lede" class="text-sm lg:text-base mu max-w-xl"></p>
+</header>
+
+<nav id="tabs" role="tablist" class="np mb-6 card p-1.5 flex gap-1 sticky top-2 z-10 w-full sm:w-auto sm:max-w-md backdrop-blur"></nav>
+<main id="main"></main>
+<p id="foot" class="np mt-6 text-center text-xs mu"></p>
+<div id="bar" class="np lg:hidden hidden"></div>
+<div id="toast" role="status" class="np hidden fixed left-1/2 -translate-x-1/2 top-4 z-30 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-lg" style="background:#245a53"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* data: old scale in tens, new scale in hundreds */
+var O={cs:[8600],ss:[8200],"1":[7800],
+"2":[6600,6848,7105,7372,7649],
+"3":[5650,5876,6112,6357,6612,6877,7153,7440],
+"4":[5000,5200,5408,5625,5850,6084,6328,6582,6846,7120],
+"5":[4300,4494,4697,4909,5130,5361,5603,5856,6120,6396,6684,6985],
+"6":[3550,3728,3915,4111,4317,4533,4760,4998,5248,5511,5787,6077,6381,6701],
+"7":[2900,3045,3198,3358,3526,3703,3889,4084,4289,4504,4730,4967,5216,5477,5751,6039,6341],
+"8":[2300,2415,2536,2663,2797,2937,3084,3239,3401,3572,3751,3939,4136,4343,4561,4790,5030,5282,5547],
+"9":[2200,2310,2426,2548,2676,2810,2951,3099,3254,3417,3588,3768,3957,4155,4363,4582,4812,5053,5306],
+"10":[1600,1680,1764,1853,1946,2044,2147,2255,2368,2487,2612,2743,2881,3026,3178,3337,3504,3680,3864],
+"11":[1250,1313,1379,1448,1521,1598,1678,1762,1851,1944,2042,2145,2253,2366,2485,2610,2741,2879,3023],
+"12":[1130,1187,1247,1310,1376,1445,1518,1594,1674,1758,1846,1939,2036,2138,2245,2358,2476,2600,2730],
+"13":[1100,1155,1213,1274,1338,1405,1476,1550,1628,1710,1796,1886,1981,2081,2186,2296,2411,2532,2659],
+"14":[1020,1071,1125,1182,1242,1305,1371,1440,1512,1588,1668,1752,1840,1932,2029,2131,2238,2350,2468],
+"15":[970,1019,1070,1124,1181,1241,1304,1370,1439,1511,1587,1667,1751,1839,1931,2028,2130,2237,2349],
+"16":[930,977,1026,1078,1132,1189,1249,1312,1378,1447,1520,1596,1676,1760,1848,1941,2039,2141,2249],
+"17":[900,945,993,1043,1096,1151,1209,1270,1334,1401,1472,1546,1624,1706,1792,1882,1977,2076,2180],
+"18":[880,924,971,1020,1071,1125,1182,1242,1305,1371,1440,1512,1588,1668,1752,1840,1932,2029,2131],
+"19":[850,893,938,985,1035,1087,1142,1200,1260,1323,1390,1460,1533,1610,1691,1776,1865,1959,2057],
+"20":[825,867,911,957,1005,1056,1109,1165,1224,1286,1351,1419,1490,1565,1644,1727,1814,1905,2001]};
+var N={cs:[1720],ss:[1640],"1":[1560],
+"2":[1320,1357,1394,1432,1472,1512,1530],
+"3":[1130,1170,1211,1253,1297,1343,1390,1438,1488],
+"4":[1000,1035,1072,1109,1148,1188,1230,1273,1317,1363,1424],
+"5":[860,895,931,968,1007,1047,1089,1132,1177,1225,1274,1324,1397],
+"6":[710,746,783,822,864,907,952,1000,1049,1102,1157,1215,1276,1340],
+"7":[580,609,640,672,705,741,778,817,857,900,945,992,1042,1094,1149,1206,1268],
+"8":[460,483,508,533,560,588,617,648,680,714,750,787,827,868,911,957,1005,1055,1108],
+"9":[440,462,486,510,535,562,590,620,651,683,717,753,791,830,872,915,961,1009,1059],
+"10":[320,336,353,371,389,409,429,451,473,497,522,548,575,604,634,666,699,734,773],
+"11":[250,263,276,290,304,320,336,352,370,388,408,428,449,472,495,520,546,573,605],
+"12":[243,256,268,282,296,311,326,342,360,377,396,416,437,459,482,506,531,557,587],
+"13":[240,252,265,278,292,307,322,338,355,373,391,411,432,453,476,499,524,551,580],
+"14":[235,247,260,273,286,300,315,331,348,365,383,402,423,444,466,489,513,539,568],
+"15":[228,240,252,264,278,291,306,321,337,354,372,390,410,430,452,474,498,523,552],
+"16":[219,230,242,254,267,280,294,309,324,340,357,375,394,413,434,456,479,502,529],
+"17":[214,225,236,248,261,274,287,302,317,332,349,367,385,404,424,445,468,491,519],
+"18":[210,221,232,244,256,269,282,296,311,326,343,360,378,396,416,437,459,482,509],
+"19":[205,216,227,238,250,262,275,289,303,319,334,351,369,387,406,427,448,470,496],
+"20":[200,210,221,232,244,256,269,282,296,311,326,343,360,378,396,416,437,459,484]};
+var ORDER=["cs","ss"].concat(Array.from({length:20},function(_,i){return ""+(i+1)}));
+var G={};ORDER.forEach(function(k){G[k]={old:O[k].map(function(v){return v*10}),nw:N[k].map(function(v){return v*100}),fixed:k==="cs"||k==="ss"}});
+
+/* i18n */
+var st=function(k,d){try{return localStorage.getItem(k)||d}catch(e){return d}};
+var LANG=st("ps26-lang","bn");
+function t(b,e){return LANG==="bn"?b:e}
+function bn(s){return String(s).replace(/[0-9]/g,function(d){return "০১২৩৪৫৬৭৮৯"[d]})}
+function nn(n){return LANG==="bn"?bn(n):n}
+function num(n){var s=Math.round(n).toLocaleString("en-IN");return nn(s)}
+function tk(n){return (LANG==="bn"?"৳":"Tk ")+num(n)}
+function gl(g){return g==="cs"?t("মন্ত্রিপরিষদ সচিব","Cabinet Secretary"):g==="ss"?t("সিনিয়র সচিব","Senior Secretary"):t("গ্রেড ","Grade ")+nn(g)}
+function gnum(g){return (g==="cs"||g==="ss")?0:parseInt(g,10)}
+function esc(s){return String(s||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+
+var S=Object.assign({tab:"pay",grade:"13",stepIdx:0,mode:"existing",join:"p1",six:true,loc:"other",kids:0,govHouse:false,age50:false,pnet:"",page:"u60",sgrade:"13"},(function(){try{return JSON.parse(localStorage.getItem("ps26-state")||"{}")}catch(e){return {}}})());
+function save(){try{localStorage.setItem("ps26-state",JSON.stringify(S));localStorage.setItem("ps26-lang",LANG)}catch(e){}}
+
+/* math (unchanged logic) */
+function fixation(grade,si,six){var g=G[grade],ob=g.old[si]||g.old[0];if(g.fixed)return{oldBasic:ob,newBasic:g.nw[0],idx:0,steps:1,inc:false};
+var target=g.nw[0]+(ob-g.old[0]),idx=g.nw.findIndex(function(v){return v>=target});if(idx===-1)idx=g.nw.length-1;var inc=false;if(six&&idx<g.nw.length-1){idx++;inc=true}
+return{oldBasic:ob,newBasic:g.nw[idx],idx:idx,steps:g.nw.length,inc:inc}}
+function hraOld(b,loc){var T={dhaka:[.65,5600,.6,8000,.55,9500,.5,13800],city:[.55,5000,.5,7000,.45,8000,.4,11000],other:[.5,4800,.45,6000,.4,7000,.35,9000]}[loc];var i=b<=9700?0:b<=16000?2:b<=35500?4:6;return Math.max(Math.round(b*T[i]),T[i+1])}
+function hraNew(b,grade,loc){var x=gnum(grade),r=x>=16?[.6,.5,.45]:x>=10?[.55,.4,.35]:x>=5?[.45,.35,.3]:[.4,.3,.25];return Math.round(b*r[loc==="dhaka"?0:loc==="city"?1:2])}
+function payCalc(){
+var f=fixation(S.grade,S.stepIdx,S.six),isNew=S.mode==="new",gi=gnum(S.grade),isHigh=gi<=9,p1=isHigh?.4:.5,p2=isHigh?.7:.75;
+var ob=isNew?G[S.grade].nw[0]:f.oldBasic,nb=f.newBasic,b1=isNew?nb:ob+Math.round(p1*(nb-ob)),b2=isNew?nb:ob+Math.round(p2*(nb-ob));
+var tf=gi>=11,tr=tf&&S.loc!=="other";
+var oa={hra:S.govHouse?0:hraOld(ob,S.loc),med:1500,edu:500*S.kids,tiffin:tf?200:0,transport:tr?300:0};oa.total=oa.hra+oa.med+oa.edu+oa.tiffin+oa.transport;
+var na={hra:S.govHouse?0:hraNew(nb,S.grade,S.loc),med:S.age50?4000:3000,edu:500*S.kids,tiffin:tf?500:0,transport:tr?600:0,mobile:gi<=5?500:150};na.total=na.hra+na.med+na.edu+na.tiffin+na.transport+na.mobile;
+var sb=isNew?0:Math.max(Math.round(ob*(isHigh?.1:.15)),1500),ph=[];
+if(!isNew)ph.push({label:t("বর্তমান","Now"),sub:t("জুন ২০২৬","June 2026"),share:null,basic:ob,allow:oa.total+sb});
+if(!isNew||S.join==="p1")ph.push({label:t("প্রথম ধাপ","Phase 1"),sub:t("জুলাই–ডিসেম্বর ২০২৬","Jul–Dec 2026"),share:isNew?null:p1,basic:b1,allow:oa.total,note:sb?t("বিশেষ সুবিধা বন্ধ","Special benefit stops"):""});
+if(!isNew||S.join!=="p3")ph.push({label:t("দ্বিতীয় ধাপ","Phase 2"),sub:t("জানুয়ারি–জুন ২০২৭","Jan–Jun 2027"),share:isNew?null:p2,basic:b2,allow:oa.total});
+ph.push({label:t("পূর্ণ বেতন","Full pay"),sub:t("জুলাই–ডিসেম্বর ২০২৭","Jul–Dec 2027"),share:1,basic:nb,allow:oa.total});
+ph.push({label:t("নতুন হারে ভাতা","New allowance rates"),sub:t("জানুয়ারি ২০২৮ থেকে","From Jan 2028"),share:1,basic:nb,allow:na.total});
+var arr=isNew?0:(b1+oa.total)-(ob+oa.hra+sb);
+return{f:f,ob:ob,nb:nb,isNew:isNew,oa:oa,na:na,sb:sb,ph:ph,arr:arr,fest0:ob,fest1:nb,boi0:Math.round(ob*.2),boi1:Math.round(nb*.15)}}
+function penCalc(){
+var o=Math.max(0,+S.pnet||0),sl=[[9000,1,10000,18000],[20000,.75,18001,35000],[30000,.65,35001,49000],[40000,.6,49001,62000],[Infinity,.55,62001,70200]];
+var s=sl.find(function(x){return o<=x[0]}),keep=o>70200,raw=Math.round(o*(1+s[1])),base=keep?o:Math.min(Math.max(raw,s[2]),s[3]),wi=keep?o:Math.round(base*1.05),he=o<=20000,p1=he?.5:.4,p2=he?.75:.7;
+var sb=o>0?Math.max(Math.round(o*(o>=17389?.1:.15)),750):0,a1=o+Math.round(p1*(wi-o));
+return{o:o,wi:wi,p1:p1,p2:p2,a1:a1,a2:o+Math.round(p2*(wi-o)),medOld:({u50:1500,u60:1500,u65:1500,u70:2000,o70:2500})[S.page]||1500,medNew:({u50:3000,u60:4000,u65:5000,u70:5000,o70:6000})[S.page]||4000,sb:sb,arr:a1-o-sb,fest0:o,fest1:wi,boi0:Math.round(o*.2),boi1:Math.round(wi*.15)}}
+
+/* ui helpers */
+function $(s){return document.querySelector(s)}
+var LAST={text:""},DEF={grade:"13",stepIdx:0,mode:"existing",join:"p1",six:true,loc:"other",kids:0,govHouse:false,age50:false,pnet:"",page:"u60",sgrade:"13"};
+function head(x){return '<div class="flex items-center justify-between mb-3"><h2 class="font-bold text-lg">'+x+'</h2><button type="button" data-reset class="text-sm font-semibold text-teal-700 min-h-[44px] px-2">↺ '+t("রিসেট","Reset")+'</button></div>'}
+function sumLine(p){return p.label+" ("+p.sub+"): "+tk(p.basic+p.allow)}
+function toast(m){var x=$("#toast");x.textContent=m;x.classList.remove("hidden");clearTimeout(toast.h);toast.h=setTimeout(function(){x.classList.add("hidden")},2200)}
+function copyText(s){function ok(){toast(t("কপি হয়েছে ✓","Copied ✓"))}
+function fb(){var a=document.createElement("textarea");a.value=s;a.style.cssText="position:fixed;opacity:0";document.body.appendChild(a);a.select();try{document.execCommand("copy");ok()}catch(e){toast(t("কপি করা যায়নি","Copy failed"))}document.body.removeChild(a)}
+try{navigator.clipboard.writeText(s).then(ok,fb)}catch(e){fb()}}
+function setBar(k,big,sub,text){LAST.text=text;var b=$("#bar");b.innerHTML='<button type="button" id="barBtn" class="w-full flex items-center justify-between gap-3 rounded-2xl px-5 py-3 text-left text-white shadow-lg" style="background:#2f6f66"><span><span class="block text-xs opacity-80">'+k+'</span><b class="block text-2xl tabular-nums leading-tight">'+big+'</b><span class="block text-xs opacity-80">'+sub+'</span></span><span class="text-sm font-semibold whitespace-nowrap">'+t("বিস্তারিত","Details")+' ↓</span></button>';b.classList.remove("hidden")}
+function fld(label,inner,help){return '<label class="block mb-4"><span class="block text-sm font-semibold mb-1.5">'+label+'</span>'+inner+(help?'<span class="block text-xs mu mt-1">'+help+'</span>':'')+'</label>'}
+function sel(k,items,label,help){return fld(label,'<select class="inp" data-k="'+k+'">'+items.map(function(i){return '<option value="'+i[0]+'"'+(String(S[k])===String(i[0])?' selected':'')+'>'+i[1]+'</option>'}).join("")+'</select>',help)}
+function seg(k,items,label){return (label?'<span class="block text-sm font-semibold mb-1.5">'+label+'</span>':'')+'<div class="seg mb-4">'+items.map(function(i){return '<button type="button" data-seg="'+k+'" data-v="'+i[0]+'" aria-pressed="'+(String(S[k])===String(i[0]))+'">'+i[1]+'</button>'}).join("")+'</div>'}
+function sw(k,title,desc){return '<label class="flex items-center justify-between gap-4 py-3 border-t ln cursor-pointer"><span><b class="block text-sm font-semibold">'+title+'</b>'+(desc?'<span class="block text-xs mu">'+desc+'</span>':'')+'</span><span class="sw"><input type="checkbox" class="peer sr-only" data-k="'+k+'"'+(S[k]?' checked':'')+'><i></i></span></label>'}
+function row(k,v,strong){return '<tr class="border-b ln last:border-0"><th class="text-left font-normal py-2.5 '+(strong?'font-bold text-teal-700':'mu')+'">'+k+'</th><td class="text-right font-semibold tabular-nums whitespace-nowrap '+(strong?'text-teal-700':'')+'">'+v+'</td></tr>'}
+function hero(k,big,sub){return '<section class="card p-6 lg:p-8 mb-4 text-white border-0 shadow-xl shadow-teal-900/10" style="background:linear-gradient(135deg,#2f6f66,#3f8a7e)"><p class="text-sm opacity-80">'+k+'</p><p class="text-4xl sm:text-5xl lg:text-6xl font-bold tabular-nums my-1 tracking-tight">'+big+'</p><p class="text-sm opacity-85">'+sub+'</p></section>'}
+function timeline(phs,l1){
+var base=phs[0];
+return '<section class="card p-5 mb-4"><h2 class="font-bold mb-5">'+t("কোন সময়ে কত পাবেন","What you get, and when")+'</h2><ol class="ml-1.5 xl:grid xl:grid-cols-2 xl:gap-x-10">'+phs.map(function(p){
+var g=p.basic+p.allow,d=p!==base?g-(base.basic+base.allow):null;
+return '<li class="tl relative pl-5 pb-6 last:pb-0"><div class="flex flex-wrap justify-between gap-x-3 mb-2"><h3 class="font-bold text-[15px]">'+p.label+'</h3><span class="text-xs mu">'+p.sub+'</span></div>'+
+(p.share!=null?'<div class="h-2 rounded-full mb-3 overflow-hidden" style="background:var(--tint)"><i class="block h-full rounded-full" style="width:'+Math.round(p.share*100)+'%;background:linear-gradient(90deg,#2f6f66,#3f8a7e)"></i></div>':'')+
+'<div class="grid grid-cols-2 gap-2 text-sm"><div class="rounded-xl p-2.5" style="background:var(--tint)"><span class="block text-xs mu">'+l1+'</span><b class="tabular-nums">'+tk(p.basic)+'</b></div><div class="rounded-xl p-2.5" style="background:var(--tint)"><span class="block text-xs mu">'+t("ভাতা","Allowance")+'</span><b class="tabular-nums">'+tk(p.allow)+'</b></div>'+
+'<div class="rounded-xl p-2.5 border ln"><span class="block text-xs mu">'+t("মোট","Gross")+'</span><b class="tabular-nums">'+tk(g)+'</b></div>'+
+(d!=null?'<div class="rounded-xl p-2.5 border ln"><span class="block text-xs mu">'+t("জুনের তুলনায়","vs June")+'</span><b class="tabular-nums '+(d>=0?'text-emerald-600':'text-rose-600')+'">'+(d>=0?"+":"−")+tk(Math.abs(d))+'</b></div>':'')+'</div>'+
+(p.note?'<p class="text-xs mu mt-2">'+p.note+'</p>':'')+'</li>'}).join("")+'</ol></section>'}
+function arrears(c,pen){
+return '<section class="card p-5 mb-4"><h2 class="font-bold mb-2">'+t("বকেয়া ও বার্ষিক ভাতা","Arrears & yearly allowances")+'</h2><table class="w-full text-sm"><tbody>'+
+row(t("মাসিক বকেয়া","Monthly arrear"),tk(c.arr))+row(t("জুলাই–আগস্ট ২০২৬ এর বকেয়া","Arrear, Jul–Aug 2026"),tk(c.arr*2),1)+
+row(t("উৎসব ভাতা, ২০২৭ পর্যন্ত","Festival, to 2027"),tk(c.fest0)+" × "+nn(2))+row(t("বাংলা নববর্ষ, ২০২৭ পর্যন্ত","New Year, to 2027"),tk(c.boi0))+
+row(t("উৎসব ভাতা, ২০২৮ থেকে","Festival, from 2028"),tk(c.fest1)+" × "+nn(2))+row(t("বাংলা নববর্ষ, ২০২৮ থেকে","New Year, from 2028"),tk(c.boi1))+'</tbody></table>'+
+(c.sb?'<p class="mt-3 text-xs rounded-xl p-3 bg-amber-100 text-amber-900">'+t("বিশেষ সুবিধা "+tk(c.sb)+" জুন ২০২৬ পর্যন্ত ছিল; ১ জুলাই ২০২৬ থেকে বিলুপ্ত।","Special benefit "+tk(c.sb)+" applied until Jun 2026; abolished from 1 Jul 2026.")+'</p>':'')+'</section>'}
+function allowT(a){var L={hra:t("বাড়ি ভাড়া","House rent"),med:t("চিকিৎসা","Medical"),edu:t("শিক্ষা সহায়ক","Education"),tiffin:t("টিফিন","Tiffin"),transport:t("যাতায়াত","Transport"),mobile:t("মোবাইল","Mobile")};
+return '<table class="w-full text-sm"><tbody>'+["hra","med","edu","tiffin","transport","mobile"].filter(function(k){return a[k]>0}).map(function(k){return row(L[k],tk(a[k]))}).join("")+row(t("মোট","Total"),tk(a.total),1)+'</tbody></table>'}
+function actions(){return '<div class="np grid sm:grid-cols-2 gap-3"><button type="button" id="copy" class="min-h-[52px] rounded-2xl font-bold border ln card hover:brightness-95 flex items-center justify-center gap-2">📋 '+t("সারসংক্ষেপ কপি","Copy summary")+'</button>'+printBtn()+'</div>'}
+function printBtn(){return '<button id="print" class="np w-full min-h-[52px] rounded-2xl text-white font-bold flex items-center justify-center gap-2 hover:brightness-110 active:scale-[.99] transition" style="background:linear-gradient(135deg,#2f6f66,#3f8a7e)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>'+t("প্রিন্ট / PDF সংরক্ষণ","Print / Save as PDF")+'</button>'}
+
+/* views */
+function viewPay(){
+var g=G[S.grade];if(S.stepIdx>=g.old.length)S.stepIdx=0;
+var h='<section class="card p-5 mb-4 np">'+head(t("আপনার তথ্য","Your details"));
+h+=seg("mode",[["existing",t("কর্মরত (৩০ জুন ২০২৬)","In service")],["new",t("নতুন নিয়োগ","New appointee")]]);
+h+=sel("grade",ORDER.map(function(x){return [x,gl(x)]}),t("গ্রেড","Grade"));
+if(S.mode==="existing"){
+ if(!g.fixed)h+=sel("stepIdx",g.old.map(function(v,i){return [i,tk(v)+" ("+t("ধাপ","step")+" "+nn(i+1)+")"]}),t("৩০ জুন ২০২৬ এ মূল বেতন","Basic pay on 30 Jun 2026"),t("পে-স্লিপ দেখে ধাপ বাছুন।","Pick the step from your pay slip."));
+}else h+=seg("join",[["p1",t("জুলাই–ডিসে ২৬","Jul–Dec 26")],["p2",t("জানু–জুন ২৭","Jan–Jun 27")],["p3",t("জুলাই ২৭+","Jul 27+")]],t("যোগদানের সময়","Joining period"));
+h+=seg("loc",[["dhaka",t("ঢাকা","Dhaka")],["city",t("অন্য সিটি","Other city")],["other",t("অন্যত্র","Elsewhere")]],t("কর্মস্থল","Workplace"));
+if(S.mode==="existing")h+=sw("six",t("ন্যূনতম ৬ মাস চাকরি (১ জুলাই ২০২৬)","6+ months of service by 1 Jul 2026"),t("১টি বার্ষিক বেতনবৃদ্ধি যোগ হবে।","Adds one annual increment."));
+h+='<button type="button" data-more aria-expanded="'+!!S.more+'" class="w-full mt-3 flex items-center justify-between min-h-[48px] rounded-xl px-4 border ln font-semibold text-sm hover:brightness-95"><span>'+t("আরও অপশন (সন্তান, বাসা, বয়স)","More options (children, housing, age)")+'</span><span aria-hidden="true">'+(S.more?"−":"+")+'</span></button>';
+if(S.more)h+='<div class="mt-4">'+seg("kids",[[0,nn(0)],[1,nn(1)],[2,nn(2)+"+"]],t("সন্তান (২৩ বছর পর্যন্ত)","Children (up to 23)"))+sw("govHouse",t("সরকারি বাসায় থাকি","I live in gov. housing"))+sw("age50",t("১ জানুয়ারি ২০২৮ এ বয়স ৫০+","Over 50 on 1 Jan 2028"),t("চিকিৎসা ভাতা ৩,০০০ এর বদলে ৪,০০০।","Medical 4,000 instead of 3,000."))+'</div>';
+return h+'</section>'}
+function resPay(){
+var c=payCalc(),g=G[S.grade];
+var h=hero(c.isNew?t("নতুন স্কেলে মূল বেতন","Basic pay in new scale"):t("১ জুলাই ২০২৬ এ নির্ধারিত মূল বেতন","Basic pay fixed on 1 Jul 2026"),tk(c.nb),(g.fixed?t("নির্ধারিত বেতন","Fixed pay"):t("ধাপ","Step")+" "+nn(c.f.idx+1)+"/"+nn(c.f.steps))+(c.isNew?"":" · "+t("এখন","now")+" "+tk(c.ob))+(c.f.inc?" · ✓ "+t("বেতনবৃদ্ধিসহ","incl. increment"):""));
+h+=timeline(c.ph,t("মূল বেতন","Basic"));
+h+='<section class="card p-5 mb-4"><h2 class="font-bold mb-3">'+t("মাসিক ভাতা","Monthly allowances")+'</h2><div class="grid sm:grid-cols-2 gap-5"><div><h3 class="text-xs font-bold mu mb-1">'+t("ডিসেম্বর ২০২৭ পর্যন্ত","Until Dec 2027")+'</h3>'+allowT(c.oa)+'</div><div><h3 class="text-xs font-bold mu mb-1">'+t("জানুয়ারি ২০২৮ থেকে","From Jan 2028")+'</h3>'+allowT(c.na)+'</div></div></section>';
+if(!c.isNew)h+=arrears(c);
+var lp=c.ph[c.ph.length-1];
+setBar(t("নতুন মূল বেতন","New basic pay"),tk(c.nb),t("২০২৮ থেকে মোট ","Gross from 2028 ")+tk(lp.basic+lp.allow),gl(S.grade)+" · "+t("নতুন মূল বেতন","New basic")+" "+tk(c.nb)+"\n"+c.ph.map(sumLine).join("\n"));
+$("#res").innerHTML=h}
+
+function viewPen(){
+return '<section class="card p-5 mb-4 np">'+head(t("পেনশনভোগীর তথ্য","Pensioner details"))+
+fld(t("৩০ জুন ২০২৬ এ মাসিক নিট পেনশন (৳)","Net monthly pension, 30 Jun 2026 (Tk)"),'<input class="inp text-lg font-semibold" type="text" inputmode="numeric" autocomplete="off" data-k="pnet" value="'+esc(S.pnet)+'" placeholder="'+t("যেমন ১৫০০০","e.g. 15000")+'">',t("বাংলা বা ইংরেজি সংখ্যা লিখতে পারেন, কমা ছাড়া।","Bengali or English digits, no commas."))+
+sel("page",[["u50",t("৫০ বছর পর্যন্ত","Up to 50")],["u60",t("৫০–৬০","50–60")],["u65",t("৬০–৬৫","60–65")],["u70",t("৬৫–৭০","65–70")],["o70",t("৭০+","Over 70")]],t("বয়স","Age"))+'</section>'}
+function resPen(){
+if(!(+S.pnet>0)){$("#bar").classList.add("hidden");$("#res").innerHTML='<section class="card p-10 mb-4 text-center mu np">'+(S.pnet!==""?t("সঠিক অঙ্ক লিখুন (০ এর বেশি)","Enter a valid amount above 0"):t("উপরে নিট পেনশনের অঙ্ক লিখুন","Enter your net pension above to see results"))+'</section>';return}
+var c=penCalc();
+var h=hero(t("নতুন নিট পেনশন","New net pension"),tk(c.wi),t("বর্তমান","current")+" "+tk(c.o));
+var ST=[
+{label:t("বর্তমান","Now"),sub:t("জুন ২০২৬","June 2026"),share:null,basic:c.o,allow:c.medOld+c.sb},
+{label:t("প্রথম ধাপ","Phase 1"),sub:t("জুলাই–ডিসেম্বর ২০২৬","Jul–Dec 2026"),share:c.p1,basic:c.a1,allow:c.medOld},
+{label:t("দ্বিতীয় ধাপ","Phase 2"),sub:t("জানুয়ারি–জুন ২০২৭","Jan–Jun 2027"),share:c.p2,basic:c.a2,allow:c.medOld},
+{label:t("পূর্ণ পেনশন","Full pension"),sub:t("জুলাই ২০২৭ থেকে","From Jul 2027"),share:1,basic:c.wi,allow:c.medOld},
+{label:t("নতুন চিকিৎসা ভাতা","New medical rate"),sub:t("জানুয়ারি ২০২৮ থেকে","From Jan 2028"),share:1,basic:c.wi,allow:c.medNew}];h+=timeline(ST,t("পেনশন","Pension"));
+setBar(t("নতুন নিট পেনশন","New net pension"),tk(c.wi),t("২০২৮ থেকে মোট ","Gross from 2028 ")+tk(ST[4].basic+ST[4].allow),t("নতুন নিট পেনশন","New net pension")+" "+tk(c.wi)+"\n"+ST.map(sumLine).join("\n"));
+$("#res").innerHTML=h+arrears(c)}
+
+function viewScale(){
+var g=G[S.sgrade],m=Math.max(g.old.length,g.nw.length),r="";
+for(var i=0;i<m;i++){var o=g.old[i],n=g.nw[i];r+='<tr class="border-b ln last:border-0"><th class="py-2.5 text-left mu font-normal">'+nn(i+1)+'</th><td class="text-right tabular-nums">'+(o?tk(o):"—")+'</td><td class="text-right tabular-nums font-semibold">'+(n?tk(n):"—")+'</td><td class="text-right tabular-nums text-emerald-600">'+(o&&n?"+"+tk(n-o):"")+'</td></tr>'}
+return '<section class="card p-5 mb-4 np">'+sel("sgrade",ORDER.map(function(x){return [x,gl(x)]}),t("গ্রেড বাছুন","Choose a grade"))+'</section>'+
+'<section class="card p-5"><h2 class="font-bold mb-3">'+gl(S.sgrade)+'</h2><div class="overflow-x-auto"><table class="w-full text-sm min-w-[420px]"><thead><tr class="mu text-xs border-b ln"><th class="text-left pb-2">'+t("ধাপ","Step")+'</th><th class="text-right pb-2">'+t("২০১৫","2015")+'</th><th class="text-right pb-2">'+t("২০২৬","2026")+'</th><th class="text-right pb-2">'+t("পার্থক্য","Diff")+'</th></tr></thead><tbody>'+r+'</tbody></table></div></section>'}
+
+function render(){
+$("#eyebrow").textContent=t("জাতীয় বেতনস্কেল ২০২৬","National Pay Scale 2026");
+$("#title").textContent=t("বেতন ও পেনশন ক্যালকুলেটর","Pay & Pension Calculator");
+$("#lede").textContent=t("নতুন মূল বেতন, ধাপে ধাপে প্রাপ্য বেতন ও পেনশন হিসাব করুন — ফলাফল সঙ্গে সঙ্গে দেখুন।","See your new basic pay, phased salary and pension — results update instantly.");
+$("#lang").textContent=LANG==="bn"?"English":"বাংলা";
+document.documentElement.lang=LANG;
+$("#tabs").innerHTML=[["pay",t("বেতন","Salary")],["pension",t("পেনশন","Pension")],["scale",t("স্কেল","Scale")]].map(function(x){return '<button role="tab" aria-selected="'+(S.tab===x[0])+'" data-tab="'+x[0]+'" class="flex-1 min-h-[44px] rounded-xl font-semibold text-sm transition '+(S.tab===x[0]?'text-white shadow-md':'mu')+'"'+(S.tab===x[0]?' style="background:linear-gradient(135deg,#2f6f66,#3f8a7e)"':'')+'>'+x[1]+'</button>'}).join("");
+$("#foot").textContent=t("অনানুষ্ঠানিক হিসাব। চূড়ান্ত বেতন নির্ধারণ iBAS++ এ হবে।","Unofficial estimate. Final fixation is done in iBAS++.");
+$("#bar").classList.add("hidden");var m=$("#main");
+var W=function(f){return '<div class="grid lg:grid-cols-[minmax(340px,420px)_1fr] gap-6 items-start"><div class="lg:sticky lg:top-20">'+f+'</div><div><div id="res" aria-live="polite" class="scroll-mt-20"></div>'+actions()+'</div></div>'};
+if(S.tab==="pay"){m.innerHTML=W(viewPay());resPay()}else if(S.tab==="pension"){m.innerHTML=W(viewPen());resPen()}else m.innerHTML='<div class="max-w-4xl">'+viewScale()+'</div>';
+save()}
+
+document.addEventListener("click",function(e){
+if(e.target.closest("[data-reset]")){Object.assign(S,DEF);render();toast(t("রিসেট হয়েছে","Reset done"));return}
+if(e.target.closest("[data-more]")){S.more=!S.more;render();return}
+if(e.target.closest("#barBtn")){$("#res").scrollIntoView({behavior:"smooth",block:"start"});return}
+if(e.target.closest("#copy")){copyText(LAST.text);return}
+var a=e.target.closest("[data-tab]");if(a){S.tab=a.dataset.tab;render();window.scrollTo({top:0,behavior:"smooth"});return}
+var s=e.target.closest("[data-seg]");if(s){var k=s.dataset.seg,v=s.dataset.v;S[k]=(k==="kids")?+v:v;render();return}
+if(e.target.id==="lang"){LANG=LANG==="bn"?"en":"bn";render();return}
+if(e.target.closest("#print"))window.print()});
+document.addEventListener("input",function(e){
+var k=e.target.dataset.k;if(!k)return;
+if(k==="pnet")e.target.value=e.target.value.replace(/[০-৯]/g,function(d){return "০১২৩৪৫৬৭৮৯".indexOf(d)}).replace(/[^0-9]/g,"");
+S[k]=e.target.type==="checkbox"?e.target.checked:e.target.value;
+if(e.target.tagName==="SELECT"||e.target.type==="checkbox"){if(k==="grade")S.stepIdx=0;if(k==="stepIdx")S.stepIdx=+S.stepIdx;render()}
+else{S.tab==="pension"?resPen():resPay();save()}});
+render();
+})();
+</script>
+</body>
+</html>
